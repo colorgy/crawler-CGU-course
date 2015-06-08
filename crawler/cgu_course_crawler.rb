@@ -96,7 +96,7 @@ class CguCourseCrawler
     @courses = @courses_h.map {|k, v| v}
     File.write('courses.json', JSON.pretty_generate(@courses))
     @courses
-  end # enc courses method
+  end # end courses method
 
   def parse_time_location
     @courses_h.each do |code, course|
@@ -117,6 +117,7 @@ class CguCourseCrawler
           datas = row.css('td')
           m_day = datas[0].text.match(/#{DAYS.keys.join('|')}/)
           day = m_day && DAYS[m_day[0]] || nil
+
           loc = datas[2].text.strip
           datas[1].text.gsub(/\s|\u00A0/, '').match(/(?<beg_p>\d)\((\d{2}\:\d{2})\)\~(?<end_p>\d)\((\d{2}\:\d{2})\)/) do |m|
             (m[:beg_p]..m[:end_p]).each do |p|
@@ -125,40 +126,46 @@ class CguCourseCrawler
               course_locations << loc
             end
           end
-        end
 
-        @courses_h[code][:day_1] = course_days[0]
-        @courses_h[code][:day_2] = course_days[1]
-        @courses_h[code][:day_3] = course_days[2]
-        @courses_h[code][:day_4] = course_days[3]
-        @courses_h[code][:day_5] = course_days[4]
-        @courses_h[code][:day_6] = course_days[5]
-        @courses_h[code][:day_7] = course_days[6]
-        @courses_h[code][:day_8] = course_days[7]
-        @courses_h[code][:day_9] = course_days[8]
-        @courses_h[code][:period_1] = course_periods[0]
-        @courses_h[code][:period_2] = course_periods[1]
-        @courses_h[code][:period_3] = course_periods[2]
-        @courses_h[code][:period_4] = course_periods[3]
-        @courses_h[code][:period_5] = course_periods[4]
-        @courses_h[code][:period_6] = course_periods[5]
-        @courses_h[code][:period_7] = course_periods[6]
-        @courses_h[code][:period_8] = course_periods[7]
-        @courses_h[code][:period_9] = course_periods[8]
-        @courses_h[code][:location_1] = course_locations[0]
-        @courses_h[code][:location_2] = course_locations[1]
-        @courses_h[code][:location_3] = course_locations[2]
-        @courses_h[code][:location_4] = course_locations[3]
-        @courses_h[code][:location_5] = course_locations[4]
-        @courses_h[code][:location_6] = course_locations[5]
-        @courses_h[code][:location_7] = course_locations[6]
-        @courses_h[code][:location_8] = course_locations[7]
-        @courses_h[code][:location_9] = course_locations[8]
+          if day.nil?
+            course_days = []
+            course_periods = []
+            course_locations = []
+          end
+
+          @courses_h[code][:day_1] = course_days[0]
+          @courses_h[code][:day_2] = course_days[1]
+          @courses_h[code][:day_3] = course_days[2]
+          @courses_h[code][:day_4] = course_days[3]
+          @courses_h[code][:day_5] = course_days[4]
+          @courses_h[code][:day_6] = course_days[5]
+          @courses_h[code][:day_7] = course_days[6]
+          @courses_h[code][:day_8] = course_days[7]
+          @courses_h[code][:day_9] = course_days[8]
+          @courses_h[code][:period_1] = course_periods[0]
+          @courses_h[code][:period_2] = course_periods[1]
+          @courses_h[code][:period_3] = course_periods[2]
+          @courses_h[code][:period_4] = course_periods[3]
+          @courses_h[code][:period_5] = course_periods[4]
+          @courses_h[code][:period_6] = course_periods[5]
+          @courses_h[code][:period_7] = course_periods[6]
+          @courses_h[code][:period_8] = course_periods[7]
+          @courses_h[code][:period_9] = course_periods[8]
+          @courses_h[code][:location_1] = course_locations[0]
+          @courses_h[code][:location_2] = course_locations[1]
+          @courses_h[code][:location_3] = course_locations[2]
+          @courses_h[code][:location_4] = course_locations[3]
+          @courses_h[code][:location_5] = course_locations[4]
+          @courses_h[code][:location_6] = course_locations[5]
+          @courses_h[code][:location_7] = course_locations[6]
+          @courses_h[code][:location_8] = course_locations[7]
+          @courses_h[code][:location_9] = course_locations[8]
+
+        end  # each row do
       end # Thead.new do
-    end # @courses_h.each do
+    end# @courses_h.each do
   end # end parse_time_location
-
-end
+end # end class
 
 cc = CguCourseCrawler.new(year: 2014, term: 1)
 cc.courses
