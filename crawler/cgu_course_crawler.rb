@@ -165,6 +165,14 @@ class CguCourseCrawler
       end # Thead.new do
     end# @courses_h.each do
   end # end parse_time_location
+
+  def current_year
+    (Time.now.month.between?(1, 7) ? Time.now.year - 1 : Time.now.year)
+  end
+
+  def current_term
+    (Time.now.month.between?(2, 7) ? 2 : 1)
+  end
 end # end class
 
 cc = CguCourseCrawler.new(year: 2014, term: 1)
