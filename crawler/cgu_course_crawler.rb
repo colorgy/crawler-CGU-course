@@ -170,6 +170,7 @@ class CguCourseCrawler
           @courses_h[code][:location_8] = course_locations[7]
           @courses_h[code][:location_9] = course_locations[8]
 
+          @after_each_proc.call(course: @courses_h[code]) if @after_each_proc
         end  # each row do
       end # Thead.new do
     end# @courses_h.each do
@@ -184,5 +185,5 @@ class CguCourseCrawler
   end
 end # end class
 
-cc = CguCourseCrawler.new(year: 2014, term: 1)
-File.write('cgu_courses.json', JSON.pretty_generate(cc.courses))
+# cc = CguCourseCrawler.new(year: 2014, term: 1)
+# File.write('cgu_courses.json', JSON.pretty_generate(cc.courses))
