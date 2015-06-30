@@ -36,9 +36,16 @@ class CguCourseCrawler
     visit @query_url
 
     dept_h = Hash[@doc.css('select[name="_ctl1:departmentsList"] option:not(:first-child)').map{|opt| [opt[:value], opt.text.split(' ')[0]]}]
+    dept_rev = Hash[dept_h.map{|k, v| [v, k]}]
+
     sem_h = Hash[@doc.css('select[name="_ctl1:termsList"] option').map{|opt| [opt[:value], opt.text]}]
     # {"39"=>"103 / 1"}
     sem = sem_h.find{|arr| arr[1].match(/(#{@year-1911})\ \/\ (#{@term})/)}[0]
+
+    if not sem
+      print "Year and Semester not Found! Byebye~\n"
+      return
+    end
 
     form_url = "#{@base_url}#{@doc.css('form')[0][:action]}"
     RestClient.post(form_url, get_view_state.merge({
@@ -68,18 +75,23 @@ class CguCourseCrawler
       datas = row.css('td')
 
       serial_no = datas[2] && datas[2].text.strip
-      code = datas[1] && "#{@year}-#{@term}-#{datas[1].text.strip}-#{serial_no}"
+      general_code = datas[1] && datas[1].text.strip
+      code = "#{@year}-#{@term}-#{general_code}-#{serial_no}"
 
       datas[5].search('br').each {|br| br.replace("\n")}
       name = datas[5].text.strip.split("\n")[0]
 
       url = datas[5].css('a')[0][:href].prepend(@base_url)
+      department = datas[3] && datas[3].text.strip
+      department_code = dept_rev[department]
 
       @courses_h[code] = {
         year: @year,
         term: @term,
         code: code,
-        department: datas[3] && datas[3].text.strip,
+        general_code: general_code,
+        department: department,
+        department_code: department_code,
         grade: datas[4] && datas[4].text.to_i,
         name: name,
         url: url,
@@ -93,9 +105,7 @@ class CguCourseCrawler
     parse_time_location
     ThreadsWait.all_waits(*@threads)
 
-    @courses = @courses_h.map {|k, v| v}
-    File.write('courses.json', JSON.pretty_generate(@courses))
-    @courses
+    @courses_h.values
   end # end courses method
 
   def parse_time_location
@@ -106,7 +116,6 @@ class CguCourseCrawler
       )
 
       @threads << Thread.new do
-        puts code
         r = RestClient.get course[:url]
         doc = Nokogiri::HTML(r)
 
@@ -120,7 +129,7 @@ class CguCourseCrawler
 
           loc = datas[2].text.strip
           datas[1].text.gsub(/\s|\u00A0/, '').match(/(?<beg_p>\d)\((\d{2}\:\d{2})\)\~(?<end_p>\d)\((\d{2}\:\d{2})\)/) do |m|
-            (m[:beg_p]..m[:end_p]).each do |p|
+            (m[:beg_p].to_i..m[:end_p].to_i).each do |p|
               course_days << day
               course_periods << p
               course_locations << loc
@@ -176,4 +185,4 @@ class CguCourseCrawler
 end # end class
 
 cc = CguCourseCrawler.new(year: 2014, term: 1)
-cc.courses
+File.write('cgu_courses.json', JSON.pretty_generate(cc.courses))
